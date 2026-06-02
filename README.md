@@ -324,7 +324,8 @@ Se utiliza HTTPException de FastAPI en app/services/user_service.py para control
 
 422 – Automático de Pydantic (email sin @, nombre muy corto, rol inválido).
 
-ejemplo: raise HTTPException(status_code=404, detail="Usuario no encontrado")
+ejemplo: 
+- raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
 # Link video:
 https://youtu.be/-feVSxmW44Q
