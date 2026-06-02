@@ -211,10 +211,10 @@ Accede a la documentación interactiva en:
 }
 
 ```
-
 # 201 (Created)
 
 ```json
+
 {
   "id": 1,
   "name": "Ana Martínez",
