@@ -293,6 +293,9 @@ Accede a la documentación interactiva en:
 ## 15. DELETE /0 – Error 404 (usuario no encontrado)
 ![Delete users nuevo 2](/images/Delete%20users%20nuevo%202.png)
 
+## 16. Vista general de todos los endpoints en Swagger UI
+![Endpoint](/images/Users.png)
+
 ## Explicación del uso de Depends() (Dependency Injection)
 
 En el proyecto se crearon dependencias reutilizables dentro de "app/dependencies/user_dependencies.py". 
