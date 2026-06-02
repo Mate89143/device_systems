@@ -201,7 +201,7 @@ Accede a la documentación interactiva en:
 
 ### POST /users – Crear usuario
 
-# json:
+```json:
 
 {
   "name": "Ana Martínez",
@@ -210,8 +210,11 @@ Accede a la documentación interactiva en:
   "is_active": true
 }
 
+```
+
 # 201 (Created)
 
+```json
 {
   "id": 1,
   "name": "Ana Martínez",
@@ -220,11 +223,17 @@ Accede a la documentación interactiva en:
   "is_active": true
 }
 
+```
+
 # GET /users/1 – Usuario no encontrado. Respuesta (404):
+
+```json
 
 {
   "detail": "Usuario no encontrado"
 }
+
+```
 
 ## Códigos de estado de uso
 
@@ -292,13 +301,15 @@ En el proyecto se crearon dependencias reutilizables dentro de "app/dependencies
 
 Esta función se encarga de buscar un usuario en la base de datos simulada (users_db) por su ID. Si el usuario existe, lo retorna. Si no, lanza una excepción #HTTPException# con código "404" y el mensaje "Usuario no encontrado".
 
-# python:
+```python:
 
-    def get_user_by_id(user_id: int):
-        for user in users_db:
-            if user["id"] == user_id:
-                return user
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+def get_user_by_id(user_id: int):
+    for user in users_db:
+        if user["id"] == user_id:
+            return user
+    raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+```
 
 ## Manejo de errores implementado
 
