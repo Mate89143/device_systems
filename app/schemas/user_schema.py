@@ -9,10 +9,10 @@ class UserRole(str, Enum):
 
 # Modelo para crear usuario (entrada)
 class UserCreate(BaseModel):
-    name: str = Field(min_length=3, description="Nombre del usuario, mínimo 3 caracteres")
-    email: str = Field(description="Correo electrónico con formato válido")
-    role: UserRole = Field(description="Rol permitido: admin, support, user")
-    is_active: bool = Field(default=True, description="Estado del usuario")
+    name: str = Field(min_length=3, description="Mínimo 3 caracteres")
+    email: str
+    role: UserRole
+    is_active: bool = True
 
     @field_validator("email")
     def validate_email(cls, v: str) -> str:
@@ -20,7 +20,20 @@ class UserCreate(BaseModel):
             raise ValueError("Formato de email inválido")
         return v.lower()
 
-# Modelo para respuesta (ocultamos datos no necesarios)
+# Modelo para actualización parcial (todos opcionales)
+class UserUpdatePartial(BaseModel):
+    name: Optional[str] = Field(None, min_length=3)
+    email: Optional[str] = None
+    role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
+
+    @field_validator("email")
+    def validate_email(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and ("@" not in v or "." not in v.split("@")[-1]):
+            raise ValueError("Formato de email inválido")
+        return v.lower() if v else v
+
+# Modelo para respuesta (ocultamos datos internos)
 class UserResponse(BaseModel):
     id: int
     name: str
@@ -29,4 +42,4 @@ class UserResponse(BaseModel):
     is_active: bool
 
     class Config:
-        from_attributes = True  # Permite trabajar con objetos o dicts
+        from_attributes = True
