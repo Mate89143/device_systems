@@ -358,3 +358,68 @@ ejemplo:
 
 # Link video:
 https://youtu.be/-feVSxmW44Q
+
+
+
+# device_systems (9 de junio de 2026)
+
+## Nombre del proyecto
+
+device_systems – API REST para gestión de usuarios.
+
+## Descripción de la API
+
+Este proyecto representa la evolución de la API `device_systems` hacia una versión profesional con **persistencia real de datos**. Anteriormente los usuarios se almacenaban en listas en memoria; ahora se guardan en una base de datos **SQLite** mediante **SQLAlchemy**. Se implementa el CRUD completo (crear, leer, actualizar, eliminar), validaciones con Pydantic, constraints a nivel de base de datos, manejo de errores y documentación automática con Swagger UI. Esta versión demuestra cómo construir una API REST robusta y preparada para entornos de producción.
+
+## Captura de la estructura del proyecto
+
+## Estructura del proyecto
+![Estructura del proyecto](/images/Estructura%20carpetas.png)
+
+## Capturas
+
+## Base de datos generada
+![Base de datos generada](/images/Base%20de%20datos%20generada.png)
+
+## SWAGGER UI
+
+## Get users
+![Get users](/images/Get%20users%20new.png)
+
+![Get users](/images/Get%20users%20new%202.png)
+
+## Get users id
+![Get users id](/images/Get%20users%20id%20new.png)
+
+![Get users id](/images/Get%20users%20id%20new%202.png)
+
+## Post users
+![Post users](/images/Post%20users%20new.png)
+
+![Post users](/images/Post%20users%20new%202.png)
+
+## Put users
+![Put users](/images/Put%20users%20new.png)
+
+![Put users](/images/Put%20users%20new%202.png)
+
+## Delete users
+![Delete users](/images/Delete%20users%20new.png)
+
+![Delete users](/images/Delete%20users%20new%202.png)
+
+## Diferencia entre modelo SQLAlchemy y schema Pydantic
+
+Modelo SQLAlchemy (user_model.py): define la tabla en la BD. Usa Column, tipos SQL, restricciones (nullable=False, unique=True). No se expone a la API.
+
+Schema Pydantic (user_schema.py): define la estructura de entrada/salida de la API. Usa BaseModel, validaciones (Field, EmailStr). Sí se expone y puede ocultar campos sensibles.
+
+Conversión: FastAPI convierte automáticamente modelo → schema con response_model y from_attributes=True.
+Por qué separarlos: seguridad (no exponer password_hash), flexibilidad (diferentes vistas) y validación clara.
+
+## Reflexión sobre la persistencia en una API
+
+Sin persistencia (listas en memoria): los datos se pierden al reiniciar el servidor.
+Con persistencia (SQLAlchemy + SQLite/PostgreSQL): los datos permanecen, se pueden compartir entre instancias y se aplican constraints de integridad (UNIQUE, NOT NULL).
+
+Además, usar un ORM evita SQL crudo, previene inyecciones, maneja transacciones y permite migraciones. En conjunto con FastAPI y Pydantic, se obtiene una API robusta y lista para producción.
