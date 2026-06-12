@@ -423,3 +423,6 @@ Sin persistencia (listas en memoria): los datos se pierden al reiniciar el servi
 Con persistencia (SQLAlchemy + SQLite/PostgreSQL): los datos permanecen, se pueden compartir entre instancias y se aplican constraints de integridad (UNIQUE, NOT NULL).
 
 Además, usar un ORM evita SQL crudo, previene inyecciones, maneja transacciones y permite migraciones. En conjunto con FastAPI y Pydantic, se obtiene una API robusta y lista para producción.
+
+# Link video:
+https://youtu.be/WgzBKx8oPEU
