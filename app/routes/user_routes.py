@@ -4,6 +4,10 @@ from typing import List, Optional
 from app.schemas.user_schema import UserCreate, UserUpdate, UserResponse
 from app.services import user_service
 from app.dependencies.database_dependency import get_db
+from app.models.user_model import User
+from app.models.device_model import Device
+from app.models.loan_model import Loan
+from app.schemas.loan_schema import LoanDetailResponse
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -35,3 +39,9 @@ def update_user_partial(user_id: int, user: UserUpdate, db: Session = Depends(ge
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     user_service.delete_user(db, user_id)
     return None
+
+@router.get("/{user_id}/loans", response_model=List[LoanDetailResponse])
+def get_user_loans(user_id: int, db: Session = Depends(get_db)):
+    user_service.get_user_by_id(db, user_id)  # lanza 404 si no existe
+    loans = db.query(Loan).join(User).join(Device).filter(Loan.user_id == user_id).all()
+    return loans
