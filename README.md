@@ -426,3 +426,77 @@ Además, usar un ORM evita SQL crudo, previene inyecciones, maneja transacciones
 
 # Link video:
 https://youtu.be/WgzBKx8oPEU
+
+
+
+# device_systems (18 de junio de 2026)
+
+## Capturas de pantalla
+
+## Ejecución de alembic init
+![Alembic init](/images/Instalación%20de%20alembic.png)
+
+## Migración con alembic revision --autogenerate
+![Migración alembic](/images/Migración%20con%20alembic%20revision%20--autogenerate.png)
+
+## Migración con alembic upgrade head
+![Migración](/images/Migración%20con%20alembic%20upgrade%20head.png)
+
+## Estructura de tablas generadas
+![Tablas](/images/Historial%20de%20tablas.png)
+
+## Iniciando alembic
+![Inicializar alembic](/images/Iniciando%20alembic.png)
+
+## SWAGGER UI
+![SWAGGER UI](/images/SWAGGER%20Users.png)
+![SWAGGER UI](/images/SWAGGER%20Devices.png)
+![SWAGGER UI](/images/SWAGGER%20Loans.png)
+
+## Creación de usuario, dispositivo y préstamo.
+
+### Usuarios
+![Usuario](/images/Post%20users%20new%201.png)
+![Usuario](/images/Post%20users%20new%201.1.png)
+
+### Dispositivos
+![Dispositivo](/images/Post%20devices.png)
+![Dispositivo](/images/Post%20devices%202.png)
+
+### Préstamos
+![Préstamo](/images/Post%20loans.png)
+![Préstamo](/images/Post%20loans%202.png)
+
+## Consultas con joins
+
+### Consulta por detalles
+![Details](/images/Get%20loans%20details.png)
+![Details](/images/Get%20loans%20details%202.png)
+
+### Estado del préstamo
+![Loans](/images/Get%20loans.png)
+![Loans](/images/Get%20loans%202.png)
+
+### Estado del dispositivo
+![Devices](/images/Get%20devices.png)
+![Devices](/images/Get%20devices%202.png)
+
+### Detalles del préstamo
+![Loans details](/images/Get%20loans%20new.png)
+![Loand details](/images/Get%20loans%20new%202.png)
+
+### Realización del préstamo
+![Returned](/images/Patch%20loans.png)
+![Returned](/images/Patch%20loans%202.png)
+
+## Reflexión sobre la importancia de migraciones, relaciones y consultas avanzadas
+
+La evolución de "device_systems" hacia un sistema con usuarios, dispositivos y préstamos se sostiene en tres pilares:
+
+Migraciones con Alembic: Permiten versionar y aplicar cambios en la base de datos de forma controlada y reversible, garantizando consistencia entre entornos.
+
+Relaciones entre modelos: Con "ForeignKey" y "relationship()" modelamos el dominio real: un usuario tiene préstamos, un préstamo involucra un dispositivo. Esto mantiene la integridad de los datos y hace el código más limpio.
+
+Consultas con joins: Con "join()" obtenemos información combinada de varias tablas en una sola consulta, haciendo la API más rápida y eficiente.
+
+Estos conceptos transforman una API básica en un sistema robusto y preparado para producción, demostrando el poder de FastAPI, SQLAlchemy y Alembic trabajando juntos.
