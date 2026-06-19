@@ -431,6 +431,10 @@ https://youtu.be/WgzBKx8oPEU
 
 # device_systems (18 de junio de 2026)
 
+## Nombre del proyecto
+
+device_systems – Alembic
+
 ## Capturas de pantalla
 
 ## Ejecución de alembic init
@@ -500,3 +504,6 @@ Relaciones entre modelos: Con "ForeignKey" y "relationship()" modelamos el domin
 Consultas con joins: Con "join()" obtenemos información combinada de varias tablas en una sola consulta, haciendo la API más rápida y eficiente.
 
 Estos conceptos transforman una API básica en un sistema robusto y preparado para producción, demostrando el poder de FastAPI, SQLAlchemy y Alembic trabajando juntos.
+
+# Link video:
+https://youtu.be/Us7q0hxwcFw
