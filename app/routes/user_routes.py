@@ -8,6 +8,7 @@ from app.models.user_model import User
 from app.models.device_model import Device
 from app.models.loan_model import Loan
 from app.schemas.loan_schema import LoanDetailResponse
+from app.dependencies.auth_dependency import get_current_active_user, require_admin_or_support
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -15,33 +16,60 @@ router = APIRouter(prefix="/users", tags=["Users"])
 def get_users(
     role: Optional[str] = Query(None, description="Filtrar por rol (admin/support/user)"),
     is_active: Optional[bool] = Query(None, description="Filtrar por estado activo"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     return user_service.get_all_users(db, role=role, is_active=is_active)
 
 @router.get("/{user_id}", response_model=UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     return user_service.get_user_by_id(db, user_id)
 
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
+def create_user(
+    user: UserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_or_support)  # Solo admin o support
+):
     return user_service.create_user(db, user)
 
 @router.put("/{user_id}", response_model=UserResponse)
-def update_user_full(user_id: int, user: UserCreate, db: Session = Depends(get_db)):
+def update_user_full(
+    user_id: int,
+    user: UserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_or_support)
+):
     return user_service.update_user_complete(db, user_id, user)
 
 @router.patch("/{user_id}", response_model=UserResponse)
-def update_user_partial(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
+def update_user_partial(
+    user_id: int,
+    user: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_or_support)
+):
     return user_service.update_user_partial(db, user_id, user)
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_or_support)
+):
     user_service.delete_user(db, user_id)
     return None
 
 @router.get("/{user_id}/loans", response_model=List[LoanDetailResponse])
-def get_user_loans(user_id: int, db: Session = Depends(get_db)):
+def get_user_loans(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     user_service.get_user_by_id(db, user_id)  # lanza 404 si no existe
     loans = db.query(Loan).join(User).join(Device).filter(Loan.user_id == user_id).all()
     return loans
