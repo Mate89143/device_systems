@@ -7,7 +7,10 @@ from app.dependencies.database_dependency import get_db
 from app.models.user_model import User
 from app.models.device_model import Device
 from app.models.loan_model import Loan
-from app.schemas.loan_schema import LoanDetailResponse
+from app.dependencies.auth_dependency import (
+    get_current_active_user,
+    require_admin_or_support,
+)
 
 router = APIRouter(prefix="/loans", tags=["Loans"])
 
@@ -18,8 +21,10 @@ def get_loans(
     device_id: Optional[int] = Query(None, description="Filtrar por ID de dispositivo"),
     user_email: Optional[str] = Query(None, description="Filtrar por email del usuario"),
     device_type: Optional[str] = Query(None, description="Filtrar por tipo de dispositivo"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),  # 🔒 Usuario autenticado
 ):
+    _ = current_user
     return loan_service.get_all_loans(db, status, user_id, device_id, user_email, device_type)
 
 @router.get("/details", response_model=List[LoanDetailResponse])
@@ -30,8 +35,10 @@ def get_loan_details(
     user_email: Optional[str] = Query(None),
     device_type: Optional[str] = Query(None),
     search: Optional[str] = Query(None, description="Búsqueda general en nombres y emails"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_or_support),  # 🔒 Admin o support
 ):
+    _ = current_user
     filters = {}
     if status: filters["status"] = status
     if user_id: filters["user_id"] = user_id
@@ -42,7 +49,12 @@ def get_loan_details(
     return loan_service.get_loans_with_details(db, filters)
 
 @router.get("/{loan_id}", response_model=LoanDetailResponse)
-def get_loan(loan_id: int, db: Session = Depends(get_db)):
+def get_loan(
+    loan_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),  # 🔒 Usuario autenticado
+):
+    _ = current_user
     loan = loan_service.get_loan_by_id(db, loan_id)
     result = db.query(Loan).join(User).join(Device).filter(Loan.id == loan_id).first()
     if not result:
@@ -50,9 +62,19 @@ def get_loan(loan_id: int, db: Session = Depends(get_db)):
     return result
 
 @router.post("/", response_model=LoanResponse, status_code=status.HTTP_201_CREATED)
-def create_loan(loan: LoanCreate, db: Session = Depends(get_db)):
+def create_loan(
+    loan: LoanCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),  # 🔒 Usuario autenticado
+):
+    _ = current_user
     return loan_service.create_loan(db, loan)
 
 @router.patch("/{loan_id}/return", response_model=LoanResponse)
-def return_loan(loan_id: int, db: Session = Depends(get_db)):
+def return_loan(
+    loan_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_or_support),  # 🔒 Admin o support
+):
+    _ = current_user
     return loan_service.return_device(db, loan_id)

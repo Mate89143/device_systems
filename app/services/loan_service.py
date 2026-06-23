@@ -1,100 +1,65 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
+from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
-from datetime import datetime
-from app.models.loan_model import Loan
-from app.models.user_model import User
 from app.models.device_model import Device
-from app.schemas.loan_schema import LoanCreate, LoanUpdate
+from app.schemas.device_schema import DeviceCreate, DeviceUpdate
 
-def get_loan_by_id(db: Session, loan_id: int):
-    loan = db.query(Loan).filter(Loan.id == loan_id).first()
-    if not loan:
-        raise HTTPException(status_code=404, detail="Préstamo no encontrado")
-    return loan
-
-def get_all_loans(db: Session, status: str = None, user_id: int = None, device_id: int = None,
-                  user_email: str = None, device_type: str = None):
-    query = db.query(Loan)
-    if status:
-        query = query.filter(Loan.status == status)
-    if user_id:
-        query = query.filter(Loan.user_id == user_id)
-    if device_id:
-        query = query.filter(Loan.device_id == device_id)
-    if user_email:
-        query = query.join(User, Loan.user_id == User.id).filter(User.email == user_email)
-    if device_type:
-        query = query.join(Device, Loan.device_id == Device.id).filter(Device.device_type == device_type)
-    return query.all()
-
-def get_loans_with_details(db: Session, filters: dict = None):
-    """Consulta con joins para obtener información enriquecida"""
-    query = db.query(Loan).join(User).join(Device)
-    # Aplicar filtros si vienen en el dict
-    if filters:
-        if "status" in filters:
-            query = query.filter(Loan.status == filters["status"])
-        if "user_id" in filters:
-            query = query.filter(Loan.user_id == filters["user_id"])
-        if "device_id" in filters:
-            query = query.filter(Loan.device_id == filters["device_id"])
-        if "user_email" in filters:
-            query = query.filter(User.email == filters["user_email"])
-        if "device_type" in filters:
-            query = query.filter(Device.device_type == filters["device_type"])
-        if "search" in filters:
-            search = filters["search"]
-            query = query.filter(
-                or_(
-                    User.name.ilike(f"%{search}%"),
-                    User.email.ilike(f"%{search}%"),
-                    Device.name.ilike(f"%{search}%"),
-                    Device.serial_number.ilike(f"%{search}%")
-                )
-            )
-    return query.all()
-
-def create_loan(db: Session, loan_data: LoanCreate):
-    # Verificar existencia de usuario y dispositivo
-    user = db.query(User).filter(User.id == loan_data.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    device = db.query(Device).filter(Device.id == loan_data.device_id).first()
+def get_device_by_id(db: Session, device_id: int):
+    device = db.query(Device).filter(Device.id == device_id).first()
     if not device:
         raise HTTPException(status_code=404, detail="Dispositivo no encontrado")
-    if not device.is_available:
-        raise HTTPException(status_code=409, detail="El dispositivo no está disponible")
+    return device
 
-    # Crear préstamo
-    new_loan = Loan(
-        user_id=loan_data.user_id,
-        device_id=loan_data.device_id,
-        status="active"
-    )
-    db.add(new_loan)
+def get_device_by_serial(db: Session, serial: str):
+    return db.query(Device).filter(Device.serial_number == serial).first()
 
-    # Marcar dispositivo como no disponible
-    device.is_available = False
+def get_all_devices(db: Session, device_type: str = None, is_available: bool = None, brand: str = None, search: str = None):
+    query = db.query(Device)
+    if device_type:
+        query = query.filter(Device.device_type == device_type)
+    if is_available is not None:
+        query = query.filter(Device.is_available == is_available)
+    if brand:
+        query = query.filter(Device.brand.ilike(f"%{brand}%"))
+    if search:
+        query = query.filter(Device.name.ilike(f"%{search}%") | Device.serial_number.ilike(f"%{search}%"))
+    return query.all()
+
+def create_device(db: Session, device_data: DeviceCreate):
+    if get_device_by_serial(db, device_data.serial_number):
+        raise HTTPException(status_code=400, detail="El número de serie ya está registrado")
+    new_device = Device(**device_data.model_dump())
+    db.add(new_device)
     try:
         db.commit()
-        db.refresh(new_loan)
-        return new_loan
-    except Exception:
+        db.refresh(new_device)
+        return new_device
+    except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Error al crear el préstamo")
+        raise HTTPException(status_code=400, detail="Error de integridad (serial duplicado)")
 
-def return_device(db: Session, loan_id: int):
-    loan = get_loan_by_id(db, loan_id)
-    if loan.status != "active":
-        raise HTTPException(status_code=409, detail="El préstamo ya fue devuelto o está vencido")
-    # Marcar como devuelto
-    loan.status = "returned"
-    loan.return_date = datetime.utcnow()
-    # Liberar dispositivo
-    device = db.query(Device).filter(Device.id == loan.device_id).first()
-    if device:
-        device.is_available = True
+def update_device_complete(db: Session, device_id: int, device_data: DeviceUpdate):
+    device = get_device_by_id(db, device_id)
+    update_dict = device_data.model_dump(exclude_unset=True)
+    if not update_dict:
+        raise HTTPException(status_code=400, detail="No se enviaron campos para actualizar")
+    if "serial_number" in update_dict:
+        existing = get_device_by_serial(db, update_dict["serial_number"])
+        if existing and existing.id != device_id:
+            raise HTTPException(status_code=400, detail="El número de serie ya está registrado")
+    for field, value in update_dict.items():
+        setattr(device, field, value)
     db.commit()
-    db.refresh(loan)
-    return loan
+    db.refresh(device)
+    return device
+
+def delete_device(db: Session, device_id: int):
+    device = get_device_by_id(db, device_id)
+    # Verificar si tiene préstamos activos
+    if device.loans:
+        active_loans = [loan for loan in device.loans if loan.status == "active"]
+        if active_loans:
+            raise HTTPException(status_code=409, detail="El dispositivo tiene préstamos activos, no se puede eliminar")
+    db.delete(device)
+    db.commit()
+    return True
