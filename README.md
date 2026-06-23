@@ -507,3 +507,28 @@ Estos conceptos transforman una API básica en un sistema robusto y preparado pa
 
 # Link video:
 https://youtu.be/Us7q0hxwcFw
+
+
+
+# device_systems (23 de junio de 2026)
+
+## Nombre del proyecto
+
+device_systems – Security
+
+## Capturas de pantalla
+
+## Captura de la estructura del proyecto.
+![Carpetas](/images/Estructura%20de%20carpetas.png)
+
+## Captura de migración Alembic aplicada.
+![Migración](/images/Migración%20con%20alembic.png)
+![Migración](/images/Migración%20con%20alembic%201.png)
+
+## Captura del registro de usuario.
+![Registro](/images/Post%20auth%20register.png)
+![Registro](/images/Post%20auth%20register%201.png)
+
+## Captura del login y token generado.
+![Token](/images/Post%20auth%20login.png)
+![Token](/images/Post%20auth%20login%201.png)
