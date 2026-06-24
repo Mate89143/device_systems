@@ -518,17 +518,87 @@ device_systems – Security
 
 ## Capturas de pantalla
 
-## Captura de la estructura del proyecto.
+## Captura de la estructura del proyecto
 ![Carpetas](/images/Estructura%20de%20carpetas.png)
 
-## Captura de migración Alembic aplicada.
+## Captura de migración Alembic aplicada
 ![Migración](/images/Migración%20con%20alembic.png)
 ![Migración](/images/Migración%20con%20alembic%201.png)
 
-## Captura del registro de usuario.
+## Captura del registro de usuario
 ![Registro](/images/Post%20auth%20register.png)
 ![Registro](/images/Post%20auth%20register%201.png)
 
-## Captura del login y token generado.
+## Captura del login y token generado
 ![Token](/images/Post%20auth%20login.png)
 ![Token](/images/Post%20auth%20login%201.png)
+
+## Captura de /auth/me
+![Me](/images/Get%20auth%20me.png)
+
+## Captura de acceso sin token
+![Sin token](/images/Get%20auth%20me%20sin%20token.png)
+
+## Captura de acceso con token
+![Con token](/images/Get%20auth%20me%20con%20token.png)
+
+## Captura de acceso con rol no permitido
+![Rol no permitido](/images/Post%20devices%20rol.png)
+![Rol no permitido](/images/Post%20devices%20rol%201.png)
+
+## Captura de Swagger/OpenAPI con OAuth2
+![OAuth2](/images/Authorize.png)
+![OAuth2](/images/Authorize%20logrado.png)
+
+## Captura de cabeceras del middleware
+![Cabecera](/images/Get%20users%20rol.png)
+![Cabecera](/images/Get%20users%20rol%201.png)
+![Cabecera](/images/Get%20users%20rol%202.png)
+
+## Captura de prueba de rate limiting
+![Limiting](/images/Rate%20limit.png)
+![Limiting](/images/Rate%20limit%201.png)
+
+## Explicación de CORS configurado
+
+En app/main.py se configuró CORS para permitir que solo frontends autorizados consuman la API:
+
+python
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+- allow_origins: Solo los orígenes especificados pueden acceder.
+
+- allow_credentials=True: Permite enviar tokens de autenticación.
+
+- allow_methods=["*"]: Permite todos los métodos HTTP.
+
+- allow_headers=["*"]: Permite todos los headers.
+
+Con allow_credentials=True no se puede usar "*" en allow_origins por seguridad. Se deben especificar los dominios exactos para evitar accesos no autorizados.
+
+## Reflexión final sobre la importancia de la seguridad en APIs REST
+
+La seguridad en una API es fundamental. Este proyecto me enseñó que:
+
+Hash de contraseñas con bcrypt es obligatorio para proteger datos sensibles.
+
+JWT permite autenticación sin estado, ideal para escalar.
+
+Roles controlan qué puede hacer cada usuario (autorización).
+
+Middleware mejora trazabilidad con cabeceras como X-Request-ID.
+
+CORS y rate limiting protegen contra accesos no autorizados y ataques.
+
+Una API sin seguridad es vulnerable. FastAPI facilita implementar estas capas de protección, convirtiendo un proyecto simple en un sistema robusto y confiable.
+
+# Link video:
+https://youtu.be/UNQMdR39CDs
+
+# Link video solución al anterior:
+https://youtu.be/kIUh_wAPG5E
