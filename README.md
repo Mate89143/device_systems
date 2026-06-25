@@ -588,20 +588,20 @@ Uvicorn – servidor ASGI
 
 ## Instalación y ejecución
 
-# 1. Crear y activar entorno virtual
+### 1. Crear y activar entorno virtual
 python -m venv env
 source env/bin/activate  # o env\Scripts\activate en Windows
 
-# 2. Instalar dependencias
+### 2. Instalar dependencias
 pip install -r requirements.txt
 
-# 3. Configurar variables de entorno (.env)
-# (ver .env.example)
+### 3. Configurar variables de entorno (.env)
+### (ver .env.example)
 
-# 4. Aplicar migraciones
+### 4. Aplicar migraciones
 alembic upgrade head
 
-# 5. Ejecutar servidor
+### 5. Ejecutar servidor
 uvicorn app.main:app --reload
 
 ## Pruebas con Swagger
