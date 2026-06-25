@@ -1,56 +1,75 @@
-from fastapi import APIRouter, HTTPException, Query, Path
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.orm import Session
 from typing import List, Optional
-from app.schemas.user_schema import UserCreate, UserResponse, UserRole
+from app.schemas.user_schema import UserCreate, UserUpdate, UserResponse
+from app.services import user_service
+from app.dependencies.database_dependency import get_db
+from app.models.user_model import User
+from app.models.device_model import Device
+from app.models.loan_model import Loan
+from app.schemas.loan_schema import LoanDetailResponse
+from app.dependencies.auth_dependency import get_current_active_user, require_admin_or_support
 
-router = APIRouter()
+router = APIRouter(prefix="/users", tags=["Users"])
 
-# Base de datos simulada en memoria
-fake_db = []
-current_id = 1
-
-@router.get("/users", response_model=List[UserResponse])
-async def get_users(
-    role: Optional[UserRole] = Query(None, description="Filtrar por rol"),
-    is_active: Optional[bool] = Query(None, description="Filtrar por estado activo/inactivo")
+@router.get("/", response_model=List[UserResponse])
+def get_users(
+    role: Optional[str] = Query(None, description="Filtrar por rol (admin/support/user)"),
+    is_active: Optional[bool] = Query(None, description="Filtrar por estado activo"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
-    """
-    Lista todos los usuarios. Permite filtrar por role y/o is_active.
-    """
-    result = fake_db
-    if role:
-        result = [u for u in result if u["role"] == role]
-    if is_active is not None:
-        result = [u for u in result if u["is_active"] == is_active]
-    return result
+    return user_service.get_all_users(db, role=role, is_active=is_active)
 
-@router.get("/users/{user_id}", response_model=UserResponse)
-async def get_user_by_id(user_id: int = Path(..., ge=1, description="ID del usuario")):
-    """
-    Obtiene un usuario por su ID.
-    """
-    for user in fake_db:
-        if user["id"] == user_id:
-            return user
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
+@router.get("/{user_id}", response_model=UserResponse)
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    return user_service.get_user_by_id(db, user_id)
 
-@router.post("/users", response_model=UserResponse, status_code=201)
-async def create_user(user_data: UserCreate):
-    """
-    Crea un nuevo usuario. Valida datos y evita emails duplicados.
-    """
-    global current_id
-    # Verificar email duplicado
-    for user in fake_db:
-        if user["email"] == user_data.email:
-            raise HTTPException(status_code=400, detail="El email ya está registrado")
-    
-    new_user = {
-        "id": current_id,
-        "name": user_data.name,
-        "email": user_data.email,
-        "role": user_data.role,
-        "is_active": user_data.is_active,
-    }
-    fake_db.append(new_user)
-    current_id += 1
-    return new_user
+@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def create_user(
+    user: UserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_or_support)  # Solo admin o support
+):
+    return user_service.create_user(db, user)
+
+@router.put("/{user_id}", response_model=UserResponse)
+def update_user_full(
+    user_id: int,
+    user: UserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_or_support)
+):
+    return user_service.update_user_complete(db, user_id, user)
+
+@router.patch("/{user_id}", response_model=UserResponse)
+def update_user_partial(
+    user_id: int,
+    user: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_or_support)
+):
+    return user_service.update_user_partial(db, user_id, user)
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_or_support)
+):
+    user_service.delete_user(db, user_id)
+    return None
+
+@router.get("/{user_id}/loans", response_model=List[LoanDetailResponse])
+def get_user_loans(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    user_service.get_user_by_id(db, user_id)  # lanza 404 si no existe
+    loans = db.query(Loan).join(User).join(Device).filter(Loan.user_id == user_id).all()
+    return loans

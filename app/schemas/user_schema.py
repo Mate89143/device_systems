@@ -1,32 +1,39 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, EmailStr
 from typing import Optional
 from enum import Enum
+from datetime import datetime
 
 class UserRole(str, Enum):
     admin = "admin"
     support = "support"
     user = "user"
 
-# Modelo para crear usuario (entrada)
+# Schemas de entrada (API)
+
 class UserCreate(BaseModel):
-    name: str = Field(min_length=3, description="Nombre del usuario, mínimo 3 caracteres")
-    email: str = Field(description="Correo electrónico con formato válido")
-    role: UserRole = Field(description="Rol permitido: admin, support, user")
-    is_active: bool = Field(default=True, description="Estado del usuario")
+    name: str = Field(min_length=3, description="Mínimo 3 caracteres")
+    email: EmailStr   # validación automática de email
+    role: UserRole
+    is_active: bool = True
 
-    @field_validator("email")
-    def validate_email(cls, v: str) -> str:
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("Formato de email inválido")
-        return v.lower()
+    @field_validator("name")
+    def capitalize_name(cls, v: str) -> str:
+        return v.strip().title()
 
-# Modelo para respuesta (ocultamos datos no necesarios)
+class UserUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=3)
+    email: Optional[EmailStr] = None
+    role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
+
+# Schema de respuesta (salida)
 class UserResponse(BaseModel):
     id: int
     name: str
     email: str
     role: UserRole
     is_active: bool
+    created_at: datetime
 
     class Config:
-        from_attributes = True  # Permite trabajar con objetos o dicts
+        from_attributes = True   # permite convertir desde modelo SQLAlchemy
