@@ -559,6 +559,57 @@ device_systems – Security
 ![Limiting](/images/Rate%20limit.png)
 ![Limiting](/images/Rate%20limit%201.png)
 
+## Tabla de códigos de estado HTTP usados
+
+| Código | Significado           | Uso en la API                                              |
+|--------|-----------------------|------------------------------------------------------------|
+| 200    | OK                    | Respuestas exitosas (GET, PUT, PATCH)                      |
+| 201    | Created               | POST (registro, creación)                                  |
+| 204    | No Content            | DELETE exitoso                                             |
+| 400    | Bad Request           | Datos inválidos, email duplicado                           |
+| 401    | Unauthorized          | Token ausente, inválido o expirado                         |
+| 403    | Forbidden             | Rol insuficiente para la operación                         |
+| 404    | Not Found             | Recurso no encontrado                                      |
+| 422    | Unprocessable Entity  | Validación de Pydantic fallida                             |
+| 429    | Too Many Requests     | Límite de rate limiting excedido                           |
+
+## Tecnologías utilizadas
+
+Python 3.13
+FastAPI – framework web
+SQLAlchemy – ORM
+Alembic – migraciones
+SQLite – base de datos (desarrollo)
+Pydantic v2 – validación de datos
+JWT (python-jose) – autenticación
+bcrypt – hash de contraseñas
+slowapi – rate limiting
+Uvicorn – servidor ASGI
+
+## Instalación y ejecución
+
+# 1. Crear y activar entorno virtual
+python -m venv env
+source env/bin/activate  # o env\Scripts\activate en Windows
+
+# 2. Instalar dependencias
+pip install -r requirements.txt
+
+# 3. Configurar variables de entorno (.env)
+# (ver .env.example)
+
+# 4. Aplicar migraciones
+alembic upgrade head
+
+# 5. Ejecutar servidor
+uvicorn app.main:app --reload
+
+## Pruebas con Swagger
+
+Swagger UI: http://localhost:8000/docs
+
+ReDoc: http://localhost:8000/redoc
+
 ## Explicación de CORS configurado
 
 En app/main.py se configuró CORS para permitir que solo frontends autorizados consuman la API:
